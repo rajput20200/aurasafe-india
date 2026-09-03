@@ -1,156 +1,330 @@
-# 🛡️ AuraSafe India
+# 🛡️ AuraSafe India 3.0
 
 ### Women's Safety & Emergency Assistance Web Application
 
-AuraSafe India is a responsive women's safety web application prototype designed to provide quick access to emergency assistance, location tracking, trusted contacts, commute monitoring, safety tools, and incident documentation.
+AuraSafe India is a **mobile-first women's safety web application prototype** designed around fast emergency access, location awareness, discreet safety tools, commute monitoring, trusted contacts, and incident documentation.
 
-The project focuses on combining browser-based technologies with a mobile-first safety-oriented interface.
+The project combines **HTML, CSS, JavaScript, browser APIs, and Leaflet.js** to create an interactive safety-focused experience that works directly in the browser.
 
----
-
-## 🌐 Live Demo
-
-👉 https://rajput20200.github.io/aurasafe-india/
+> 🚀 **Live Demo:** https://rajput20200.github.io/aurasafe-india/
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- 🚨 Multi-gesture SOS activation
-- 📍 Live location tracking using browser Geolocation API
-- 🗺️ Interactive map with Leaflet.js
-- 👥 Emergency and trusted contacts
-- 📞 Emergency helpline access
-- 🚌 Commute monitoring and safety checks
-- 🤖 Rule-based safety assistant
-- 🧮 Decoy calculator mode
-- 🔐 PIN-based application lock
-- 📝 Incident and evidence history
-- 🌐 Multilingual interface
-- ♿ Accessibility controls
-- 🔋 Battery and device status information
-- 📡 Network and GPS status indicators
-- 📱 Responsive mobile-first interface
+### 🚨 Multi-Trigger SOS
+
+AuraSafe provides multiple ways to activate its emergency flow:
+
+* Long-press SOS activation
+* Multi-tap activation
+* Device-shake detection using the Device Motion API
+* Voice-triggered emergency keywords
+* 5-second cancellation countdown
+* PIN-based cancellation
+
+The SOS interaction logic is implemented directly in JavaScript using touch, mouse, motion, and speech events.
 
 ---
 
-## 🛠️ Technologies Used
+### 📍 Live Location Tracking
 
-- HTML5
-- CSS3
-- JavaScript
-- LocalStorage
-- Geolocation API
-- Device Motion API
-- Web Speech API
-- MediaDevices API
-- Battery Status API
-- Leaflet.js
-- OpenStreetMap
-- Boxicons
-- WhatsApp Deep Links
-- Google Maps Links
+The Track section uses the browser's **Geolocation API** to continuously obtain the device position.
+
+The application:
+
+* Reads latitude and longitude
+* Updates the displayed coordinates
+* Updates the location marker
+* Centers the interactive map around the current position
+* Uses high-accuracy geolocation when available
 
 ---
 
-## 🎯 Project Highlights
+### 🗺️ Interactive Safety Map
 
-### Emergency SOS
+AuraSafe uses **Leaflet.js** to display an interactive map with a dynamic location marker.
 
-The application provides multiple ways to activate an SOS flow, including gesture-based interactions designed for situations where quickly navigating the interface may be difficult.
-
-### Location Tracking
-
-The application uses the browser's Geolocation API to obtain and display the user's location on an interactive map.
-
-### Trusted Safety Circle
-
-Users can configure emergency contacts and access them quickly during an emergency situation.
-
-### Commute Safety
-
-The Commute section provides safety-oriented tools for monitoring a journey and checking important travel information.
-
-### Decoy Mode
-
-A calculator-style interface can be used as a discreet alternative interface.
-
-### Safety Assistant
-
-Aura AI provides predefined safety guidance using rule-based responses.
-
-### Multilingual Interface
-
-The interface supports multiple Indian languages to make the application more accessible to a wider range of users.
-
-### Accessibility
-
-The application includes accessibility-oriented controls such as larger text and high-contrast viewing options.
+The map uses Carto map tiles and updates the marker as the user's location changes.
 
 ---
 
-## 📱 Application Sections
+### 🎙️ Voice Emergency Detection
 
-| Section | Purpose |
-|---|---|
-| 🛡️ Shield | Emergency safety tools and SOS |
-| 📍 Track | Location and map tracking |
-| 🚌 Commute | Journey and travel safety |
-| 🤖 Aura AI | Safety guidance |
-| 🔐 Vault | Incident and evidence history |
+The application uses browser speech recognition where supported.
 
----
+It listens for predefined emergency phrases such as:
 
-## 🔒 Security & Privacy
+* `help me`
+* `bachao`
+* `emergency`
+* `save me`
 
-This project is a **client-side web application prototype**.
-
-User settings and application data are stored locally in the browser using LocalStorage.
-
-The current prototype does **not** include:
-
-- A cloud backend
-- Server-side authentication
-- A production database
-- Real-time emergency dispatch infrastructure
-- Cloud evidence storage
-- End-to-end encryption
-
-This project should therefore be considered a **prototype and portfolio project**, not a production emergency-response system.
+When a matching phrase is detected, the emergency flow can be triggered.
 
 ---
 
-## ⚠️ Important Disclaimer
+### 🕵️ Discreet Decoy Mode
 
-AuraSafe India is an educational and portfolio project designed to demonstrate web development, browser APIs, responsive UI design, and safety-oriented application concepts.
+AuraSafe includes a calculator-style decoy interface designed to provide a discreet alternative screen.
 
-It is **not a replacement for official emergency services**.
-
-For real emergencies, contact the appropriate official emergency services.
+The calculator can also interact with the application's PIN logic and emergency flow.
 
 ---
 
-## 🚀 Future Improvements
+### 📞 Emergency Assistance
 
-- Backend and secure database integration
-- Real user authentication
-- Secure encrypted data storage
-- Real-time trusted-contact notifications
-- Push notifications
-- Cloud-based incident storage
-- Emergency-service API integration
-- Real-time trip sharing
-- Stronger privacy controls
-- Production-grade security architecture
+The Shield section provides quick access to Indian emergency channels including:
+
+* **112 — All-In-One Response**
+* **1091 — Women Response Grid**
+
+The interface uses device-supported telephone links for quick access.
 
 ---
 
-## 👩‍💻 Project
+### 🚌 Commute Safety Tools
 
-**AuraSafe India**
+The Commute section includes:
 
-Built as a portfolio project to explore modern frontend development, browser APIs, responsive design, accessibility, localization, and safety-focused user experiences.
+* Destination-based safety check-in
+* Transit monitoring interface
+* Vehicle/registration number logging
+* Support for common Indian transport scenarios
+* Simulated incoming-call decoy functionality
+
+## The current implementation provides browser-side interaction and interface logic for these features.
+
+### 🤖 Aura AI Safety Assistant
+
+Aura AI provides an interactive safety guidance interface.
+
+The current implementation is a **rule-based assistant**, using predefined responses and keyword matching rather than a connected external AI model.
+
+This makes it a good demonstration of:
+
+* Natural-language input handling
+* Conditional logic
+* Dynamic chat UI
+* Safety-oriented response flows
 
 ---
 
-⭐ If you find this project interesting, feel free to explore the code and live demo.
+### 👥 Trusted Safety Circle
+
+Users can add trusted contacts by entering:
+
+* Name
+* Mobile number
+* Relationship
+
+The application maintains these contacts locally for use within the safety interface.
+
+---
+
+### 📝 Incident & Evidence Vault
+
+The application records emergency incident information such as:
+
+* Timestamp
+* Location coordinates
+* Emergency activation details
+
+The incident information is stored locally in the browser and rendered inside the Evidence Vault.
+
+---
+
+### 🌐 Multilingual Interface
+
+AuraSafe includes interface translations for:
+
+* 🇬🇧 English
+* 🇮🇳 Hindi
+* Bengali
+* Marathi
+* Tamil
+* Telugu
+* Punjabi
+* Gujarati
+* Kannada
+* Malayalam
+
+The language selector and translation dictionary are built directly into the application.
+
+---
+
+### ♿ Accessibility Features
+
+The interface includes accessibility-oriented display options:
+
+* Large-text mode
+* High-contrast mode
+* Responsive mobile layout
+
+The application uses CSS variables to dynamically adjust text scale, contrast, colors, and interface appearance.
+
+---
+
+### 🔋 Device & Network Diagnostics
+
+AuraSafe can display browser/device information including:
+
+* Battery level
+* Network status
+* Voice recognition availability
+* Safety/risk context indicators
+
+The application listens for online/offline changes and updates the interface accordingly.
+
+---
+
+# 📱 Application Structure
+
+| Section        | Purpose                               |
+| -------------- | ------------------------------------- |
+| 🛡️ **Shield** | SOS and emergency assistance          |
+| 📍 **Track**   | Location tracking and interactive map |
+| 🚌 **Commute** | Travel safety and transit tools       |
+| 🤖 **Aura AI** | Rule-based safety guidance            |
+| 🔐 **Vault**   | Trusted contacts and incident records |
+
+These five sections form the application's primary navigation structure.
+
+---
+
+# 🛠️ Technology Stack
+
+### Frontend
+
+* HTML5
+* CSS3
+* JavaScript
+* Responsive / mobile-first design
+* CSS animations
+* CSS variables
+* DOM manipulation
+* Event-driven JavaScript
+
+### Browser APIs
+
+* Geolocation API
+* Device Motion API
+* Web Speech API
+* MediaDevices API
+* Battery Status API
+* LocalStorage API
+
+### Libraries & Services
+
+* Leaflet.js
+* Carto map tiles
+* Boxicons
+* Google Maps links
+* WhatsApp Web/API links
+
+Leaflet and Boxicons are loaded as external frontend dependencies in the application.
+
+---
+
+# 🧠 What I Learned From This Project
+
+Building AuraSafe India helped me explore:
+
+* Designing mobile-first safety interfaces
+* Handling multiple user interaction patterns
+* Working with browser hardware APIs
+* Implementing real-time geolocation updates
+* Building interactive maps
+* Managing client-side application state
+* Creating multilingual interfaces
+* Designing accessibility controls
+* Working with browser permissions
+* Creating responsive UI components
+* Building interactive emergency workflows
+* Structuring a larger single-page JavaScript application
+
+---
+
+# 🔐 Data & Security Approach
+
+AuraSafe India is currently a **client-side web application prototype**.
+
+Application settings, contacts, and incident records are stored locally using the browser's `localStorage`. For example, the user's configured PIN and trusted-contact information are written to local browser storage.
+
+The current version does **not** have a cloud backend or production database.
+
+Therefore, this project should be understood as a **frontend prototype demonstrating safety-focused interaction and browser technology**, rather than a production emergency-response platform.
+
+---
+
+# ⚠️ Prototype Disclaimer
+
+AuraSafe India is an **educational and portfolio project**.
+
+Some features simulate or demonstrate emergency workflows within the browser. The application does not provide direct integration with police, emergency-response centers, or a dedicated emergency dispatch backend.
+
+For real emergencies, users should contact the appropriate official emergency services.
+
+The legal-information section inside the prototype is also intended for demonstration and should not be treated as professional legal advice.
+
+---
+
+# 🚀 Future Development
+
+The next version could introduce:
+
+* 🔐 Secure backend authentication
+* 🗄️ Cloud database integration
+* 🔒 Proper encrypted data storage
+* 👥 Secure real-time contact sharing
+* 🔔 Push notifications
+* 📡 Real-time location sharing
+* ☁️ Secure cloud evidence storage
+* 🤖 Integration with a real AI service
+* 🚨 Emergency-service API integrations
+* 🔑 Stronger authentication and authorization
+* 🧪 Automated testing
+* 🛡️ Production-grade security architecture
+
+---
+
+# 📂 Project Structure
+
+Currently, AuraSafe India is implemented as a single-page web application:
+
+```text
+aurasafe-india/
+│
+├── index.html
+└── README.md
+```
+
+The main application contains the HTML structure, CSS styling, and JavaScript functionality required to run the prototype.
+
+---
+
+# 🌐 Live Demo
+
+### [Open AuraSafe India](https://rajput20200.github.io/aurasafe-india/)
+
+Try the different sections:
+
+**Shield → Track → Commute → Aura AI → Vault**
+
+---
+
+# 👩‍💻 Project Information
+
+**Project:** AuraSafe India 3.0
+**Category:** Women's Safety Web Application
+**Type:** Frontend / Browser-Based Prototype
+**Platform:** Web
+**Deployment:** GitHub Pages
+
+---
+
+## ⭐ Portfolio Highlight
+
+AuraSafe India demonstrates how **frontend development, browser APIs, interactive mapping, accessibility, localization, and user-centered safety workflows** can be combined into a single responsive web application.
+
+Built as a portfolio project to explore practical JavaScript development and safety-focused product design.
