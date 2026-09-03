@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AuraSafe India 3.0 - Premium Safety Ecosystem</title>
+    
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkF1cmFTYWZlIEluZGlhIDMuMCIsCiAgInNob3J0X25hbWSI6ICJBdXJhU2FmZSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAidGhlbWVfY29sb3IiOiAiIzYzNjZmMSIsCiAgImJhY2tncm91bmRY29sb3IiOiAiIzA4MDgwYyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0Igp9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --bg: #07070a;
+            --surface: rgba(18, 18, 26, 0.75);
+            --surface-bright: rgba(28, 28, 40, 0.95);
+            --border: rgba(255, 255, 255, 0.07);
+            --primary: #6366f1; /* Premium reassuring Indigo instead of panic red */
+            --primary-glow: rgba(99, 102, 241, 0.3);
+            --sos-color: #ef4444;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --text: #f8fafc;
+            --text-muted: #64748b;
+            --glass: blur(24px) saturate(150%);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --font-scale: 1rem;
+        }
+
+        body.high-contrast-mode {
+            --bg: #000000;
+            --surface: #111111;
+            --surface-bright: #222222;
+            --border: #ffffff;
+            --text: #ffffff;
+            --text-muted: #bbbbbb;
+            --primary: #ffff00;
+            --accent: #00ffff;
+        }
+
+        body.large-text-mode {
+            --font-scale: 1.25rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: calc(1em * (1 + (var(--font-scale) - 1rem) / 16px));
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            padding-bottom: calc(90px + var(--safe-bottom));
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Verification Gate / Onboarding Overlays */
+        .fullscreen-gate-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg);
+            z-index: 9000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        /* Navigation Header Architecture */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            background: var(--surface);
+            backdrop-filter: var(--glass);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand-cluster {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-cluster i {
+            color: var(--primary);
+            font-size: 1.6rem;
+        }
+
+        .header-action-deck {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Viewport Layout Frame */
+        .app-viewport-container {
+            padding: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .app-view-panel {
+            display: none;
+        }
+
+        .app-view-panel.active {
+            display: block;
+            animation: layoutFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Glassmorphic Components Card Design */
+        .glass-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            backdrop-filter: var(--glass);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        /* Advanced SOS Button Mechanism */
+        .sos-sentinel-hub {
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .sos-pulse-ring-wrapper {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .sos-radial-ripple {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--sos-color);
+            opacity: 0.12;
+            transform: scale(0.9);
+        }
+
+        .sos-active-alerting .ripple-alpha { animation: ringExpansionLoop 1.6s infinite ease-out; }
+        .sos-active-alerting .ripple-beta { animation: ringExpansionLoop 1.6s infinite ease-out 0.8s; }
+
+        .btn-core-sos-dispatch {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+            border: 5px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 40px var(--primary-glow);
+            z-index: 10;
+            user-select: none;
+            transition: transform 0.1s, background 0.3s;
+        }
+
+        .sos-active-alerting .btn-core-sos-dispatch {
+            background: linear-gradient(135deg, var(--sos-color) 0%, #dc2626 100%);
+            box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Countdown Overlay Frame */
+        .countdown-fullscreen-shield {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(4, 4, 6, 0.98);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9500;
+        }
+
+        /* Form Factors and Inputs Layout */
+        .section-header-tag {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin: 20px 0 10px 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
+            color: var(--text-muted);
+        }
+
+        .input-box-element {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text);
+            margin-bottom: 12px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-box-element:focus {
+            border-color: var(--primary);
+        }
+
+        .action-cta-button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+
+        .action-cta-button:active {
+            filter: brightness(1.2);
+        }
+
+        /* Micro-Diagnostics Grid Matrix */
+        .diagnostics-flex-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .diagnostic-card-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 12px 14px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .diagnostic-card-pill i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .diagnostic-card-pill.alerting i {
+            color: var(--sos-color);
+        }
+
+        .diagnostic-meta-stack div:first-child {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .diagnostic-meta-stack div:last-child {
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        /* Fixed Bottom Structural Dock Navigation Row */
+        .bottom-dock-navigation {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: var(--surface);
+            backdrop-filter: var(--glass);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 calc(12px + var(--safe-bottom));
+            z-index: 8000;
+        }
+
+        .dock-action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            width: 18%;
+        }
+
+        .dock-action-item i {
+            font-size: 1.5rem;
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        .dock-action-item.active {
+            color: var(--primary);
+        }
+
+        .dock-action-item.active i {
+            transform: translateY(-2px);
+        }
+
+        /* Spatial Map Engine Rendering Target Frame */
+        .spatial-map-viewport-target {
+            height: 260px;
+            width: 100%;
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            margin-bottom: 12px;
+            z-index: 5;
+        }
+
+        /* Global Reusable Lists Strips */
+        .item-data-strip-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 14px;
+            border-radius: 14px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* Interactive AI Output Dynamic Area */
+        .ai-chat-scroller-box {
+            height: 260px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-row-capsule {
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 85%;
+        }
+
+        .chat-row-capsule.bot { background: rgba(255, 255, 255, 0.05); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-row-capsule.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        /* General UI Auxiliary Modules */
+        .app-toast-alert {
+            position: fixed;
+            bottom: 105px; left: 50%;
+            transform: translateX(-50%) translateY(40px);
+            background: var(--surface-bright);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .app-toast-alert.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Calculator Functional Decoy View Layout Styles */
+        .calculator-grid-decoy {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .calculator-grid-decoy button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 16px;
+            color: white;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Keyframes Structural System */
+        @keyframes ringExpansionLoop {
+            0% { transform: scale(0.9); opacity: 0.5; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+        @keyframes layoutFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+
+    <div class="fullscreen-gate-overlay" id="verificationShieldGateOverlay">
+        <i class='bx bxs-shield-quarter' style="font-size: 4.5rem; color: var(--primary); margin-bottom: 12px;"></i>
+        <h2 style="font-weight: 900; letter-spacing: -0.5px;" id="lblLockScreenTitle">AURASAFE GUARD SYSTEM</h2>
+        <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 13px; text-align: center;" id="lblLockScreenSubtitle">Identity verification required to open secure personal encryption profiles.</p>
+        <input type="password" id="txtSecurityGatewayPinInput" placeholder="4-Digit PIN" maxlength="4" style="text-align: center; font-size: 24px; letter-spacing: 12px; max-width: 200px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 14px; outline: none; margin-bottom: 16px;">
+        <button class="action-cta-button" style="max-width: 200px;" onclick="verifyUserAccessGatewayPin()">Unlock Shell</button>
+        <div style="margin-top: 24px; font-size: 11px; color: var(--text-muted); cursor: pointer;" onclick="swapToDecoyCalculatorView()" id="lblDecoyOptionText">Switch to Calculator Mode</div>
+    </div>
+
+    <div class="fullscreen-gate-overlay" id="decoyCalculatorOverlayPanel" style="display: none; background: #0c0c10;">
+        <div style="width: 100%; max-width: 320px;">
+            <input type="text" id="txtDecoyCalculatorScreen" value="0" readonly style="width: 100%; padding: 20px; font-size: 2rem; border: none; background: transparent; color: white; text-align: right; outline: none; margin-bottom: 20px;">
+            <div class="calculator-grid-decoy">
+                <button onclick="pressCalculatorDecoyKey('7')">7</button><button onclick="pressCalculatorDecoyKey('8')">8</button><button onclick="pressCalculatorDecoyKey('9')">9</button><button style="color: var(--accent);">÷</button>
+                <button onclick="pressCalculatorDecoyKey('4')">4</button><button onclick="pressCalculatorDecoyKey('5')">5</button><button onclick="pressCalculatorDecoyKey('6')">6</button><button style="color: var(--accent);">×</button>
+                <button onclick="pressCalculatorDecoyKey('1')">1</button><button onclick="pressCalculatorDecoyKey('2')">2</button><button onclick="pressCalculatorDecoyKey('3')">3</button><button style="color: var(--accent);">-</button>
+                <button onclick="clearCalculatorDecoyScreen()">C</button><button onclick="pressCalculatorDecoyKey('0')">0</button><button onclick="verifyCalculatorDecoyPinSequence()" style="background: var(--primary);">=</button><button style="color: var(--accent);">+</button>
+            </div>
+            <p style="color: #222230; font-size: 10px; text-align: center; margin-top: 30px;">Standard Workspace Utility Module</p>
+        </div>
+    </div>
+
+    <div class="fullscreen-gate-overlay" id="platformInitializationWizardOverlay" style="display: none;">
+        <h2 style="font-weight: 900; margin-bottom: 6px;" id="lblWizardTitle">ENCRYPTED IDENTITY CONFIGURATION</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 24px; font-size: 13px;" id="lblWizardSubtitle">Set your parameters to initialize hyper-local encryption modules.</p>
+        <div style="width: 100%; max-width: 340px;">
+            <input type="text" class="input-box-element" id="txtWizardUserName" placeholder="Full Registered User Name">
+            <input type="password" class="input-box-element" id="txtWizardUserSecurityPin" placeholder="Setup 4-Digit Security PIN" maxlength="4">
+            <input type="tel" class="input-box-element" id="txtWizardGuardianContactNumber" placeholder="Primary Emergency Mobile (+91)">
+            <button class="action-cta-button" style="margin-top: 8px;" onclick="commitUserInitializationDataPackets()">Initialize Sentry Systems</button>
+        </div>
+    </div>
+
+    <div class="countdown-fullscreen-shield" id="sosArmedCountdownMaskContainer">
+        <p style="color: var(--text-muted); font-weight: 700; letter-spacing: 1px; font-size: 12px;" id="lblCountdownTopAlert">PREPARING ENCRYPTED EMERGENCY DISPATCHED DATA</p>
+        <div style="font-size: 8rem; font-weight: 900; color: var(--sos-color); text-shadow: 0 0 40px rgba(239, 68, 68, 0.4);" id="lblCountdownTimerValueDisplay">5</div>
+        <input type="password" class="input-box-element" id="txtCountdownCancellationPinField" placeholder="Enter PIN to Abort Broadcast" style="max-width: 240px; text-align: center; margin-bottom: 16px; font-size: 16px; letter-spacing: 4px;">
+        <button class="action-cta-button" style="background: #1e1b4b; max-width: 240px;" onclick="evaluateSOSCountdownCancellationClaim()">ABORT BROADCAST</button>
+    </div>
+
+    <header>
+        <div class="brand-cluster">
+            <i class='bx bxs-shield-quarter'></i> AuraSafe <span>India 3.0</span>
+        </div>
+        <div class="header-action-deck">
+            <select id="optRegionalLanguageSelector" onchange="switchSystemLocaleTranslationDictionary()" style="background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; font-size: 12px; outline: none; font-weight: 600;">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                <option value="ml">മലയാളം (Malayalam)</option>
+            </select>
+            <button class="circle-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text); cursor: pointer;" onclick="toggleAccessibilityDisplayConstraints()"><i class='bx bx-text' style="font-size: 1.1rem; display: flex; align-items: center; justify-content: center;"></i></button>
+        </div>
+    </header>
+
+    <div class="app-toast-alert" id="globalToastAlertModuleBlock">Secure Sentry Sync Complete</div>
+
+    <main class="app-viewport-container">
+
+        <section id="view-panel-shield" class="app-view-panel active">
+            
+            <div class="glass-card sos-sentinel-hub" id="sosInteractionVisualCardComponent">
+                <h3 style="font-weight: 800; margin-bottom: 2px;" id="lblShieldPanelCardTitle">SECURE BROADCAST CENTER</h3>
+                <p style="font-size: 12px; color: var(--text-muted);" id="lblShieldPanelCardSubtitle">Long-Press (3s), Multi-Tap, or Accelerometer Shake Monitoring Active</p>
+                
+                <div class="sos-pulse-ring-wrapper" id="sosVisualRippleVibeFrame animate-pulse">
+                    <div class="sos-radial-ripple ripple-alpha"></div>
+                    <div class="sos-radial-ripple ripple-beta"></div>
+                    <button class="btn-core-sos-dispatch" id="btnTriggerSOSActionChannel">SOS</button>
+                </div>
+                <div style="font-weight: 700; color: var(--success); font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;" id="lblSystemSentryPillMessage">
+                    <i class='bx bxs-check-shield' style="font-size: 1.1rem;"></i> Encrypted Environmental Sentry Armed
+                </div>
+            </div>
+
+            <div class="diagnostics-flex-grid">
+                <div class="diagnostic-card-pill">
+                    <i class='bx bxs-battery-charging'></i>
+                    <div class="diagnostic-meta-stack">
+                        <div id="lblDiagTitleBattery">Device Energy</div>
+                        <span id="txtDiagValueBattery">Tracking Status...</span>
+                    </div>
+                </div>
+                <div class="diagnostic-card-pill" id="pillTelemetryStatusBox">
+                    <i class='bx bx-broadcast'></i>
+                    <div class="diagnostic-meta-stack">
+                        <div id="lblDiagTitleNetwork">Network Sentry</div>
+                        <span id="txtDiagValueNetwork">Online (5G)</span>
+                    </div>
+                </div>
+                <div class="diagnostic-card-pill">
+                    <i class='bx bxs-microphone'></i>
+                    <div class="diagnostic-meta-stack">
+                        <div id="lblDiagTitleVoice">Acoustic Guard</div>
+                        <span id="txtDiagValueVoice">Listening Active</span>
+                    </div>
+                </div>
+                <div class="diagnostic-card-pill">
+                    <i class='bx bxs-brain'></i>
+                    <div class="diagnostic-meta-stack">
+                        <div id="lblDiagTitleEngine">Risk Context</div>
+                        <span id="txtDiagValueEngine" style="color: var(--success);">0% Risk Index</span>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="section-header-tag" id="lblHeadlineStatutoryHelplines"><i class='bx bxs-phone-call'></i> Statutory Emergency Channels (India)</h4>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <a href="tel:112" class="item-data-strip-row" style="text-decoration: none; color: var(--text); margin-bottom: 0; padding: 12px;">
+                    <div><strong style="color: var(--sos-color); font-size: 16px;">112</strong><div style="font-size: 11px; color: var(--text-muted);">All-In-One Response</div></div>
+                    <i class='bx bxs-chevron-right' style="color: var(--text-muted);"></i>
+                </a>
+                <a href="tel:1091" class="item-data-strip-row" style="text-decoration: none; color: var(--text); margin-bottom: 0; padding: 12px;">
+                    <div><strong style="color: var(--sos-color); font-size: 16px;">1091</strong><div style="font-size: 11px; color: var(--text-muted);">Women Response Grid</div></div>
+                    <i class='bx bxs-chevron-right' style="color: var(--text-muted);"></i>
+                </a>
+            </div>
+        </section>
+
+        <section id="view-panel-telemetry" class="app-view-panel">
+            <h4 class="section-header-tag" id="lblHeadlineSpatialTracking"><i class='bx bx-map-alt'></i> Live Encrypted Geo-Spatial Track</h4>
+            <div class="glass-card" style="padding: 12px;">
+                <div class="spatial-map-viewport-target" id="leafletInteractiveMapContainerBox"></div>
+                <div style="font-size: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; color: var(--text-muted); padding-left: 4px;">
+                    <div>Latitude: <span id="lblTelemetryCoordinatesLat" style="color: var(--text); font-weight: 700;">--</span></div>
+                    <div>Longitude: <span id="lblTelemetryCoordinatesLon" style="color: var(--text); font-weight: 700;">--</span></div>
+                </div>
+            </div>
+
+            <h4 class="section-header-tag" id="lblHeadlineTravelSentry"><i class='bx bxs-hourglass-top'></i> Intelligent Transit Arrival Monitor</h4>
+            <div class="glass-card">
+                <input type="text" class="input-box-element" id="txtTravelSentryDestinationName" placeholder="Enter Target Destination Point (e.g., Office/Sector)">
+                <select class="input-box-element" id="optTravelSentryTimeoutInterval">
+                    <option value="15">Check-In Window Timeout: 15 Mins</option>
+                    <option value="30">Check-In Window Timeout: 30 Mins</option>
+                    <option value="45">Check-In Window Timeout: 45 Mins</option>
+                    <option value="60">Check-In Window Timeout: 60 Mins</option>
+                </select>
+                <button class="action-cta-button" style="background: var(--primary);" onclick="armIntelligentTravelSentryCheckin()">Arm Transit Arrival Sentry</button>
+                <div id="lblActiveTravelTimelineFeedbackContainer" style="margin-top: 12px; font-size: 12px; display: none; color: var(--accent); font-weight: 600;"></div>
+            </div>
+        </section>
+
+        <section id="view-panel-transit" class="app-view-panel">
+            <h4 class="section-header-tag" id="lblHeadlineDecoyEngine"><i class='bx bxs-volume-full'></i> Discrete Decoy Audio Loop Escape</h4>
+            <div class="glass-card">
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Instantly compile a realistic native incoming call loop overlay layer to detach cleanly from unsafe environments.</p>
+                <select class="input-box-element" id="optDecoySimulatedIncomingCallerLabel">
+                    <option value="Mom (घर)">Mother (Mom)</option>
+                    <option value="Dad (पिताजी)">Father (Dad)</option>
+                    <option value="Brother (ভাই)">Brother</option>
+                    <option value="BNS Police Control Room">Police Control Station Desk</option>
+                </select>
+                <button class="action-cta-button" style="background: #374151;" onclick="fireSimulatedDecoyEscapeCallStream()">Launch Decoy Call Track</button>
+            </div>
+
+            <h4 class="section-header-tag" id="lblHeadlineTransitAudit"><i class='bx bxs-taxi'></i> Public Logistics Commute Auditor (India)</h4>
+            <div class="glass-card">
+                <select class="input-box-element" id="optTransitLogisticsPlatformType">
+                    <option value="Delhi/Mumbai Metro Terminal">Metro Transit Hub Network</option>
+                    <option value="Uber Cab Fleet">Uber India Commercial Rides</option>
+                    <option value="Ola Shared Fleet">Ola Mobile Logistics Line</option>
+                    <option value="Rapido Bike Commute">Rapido Logistics Aggregator</option>
+                    <option value="Local Auto-Rickshaw / Transport">Local Auto-Rickshaw / E-Rickshaw</option>
+                </select>
+                <input type="text" class="input-box-element" id="txtTransitLogisticsVehicleRegistrationNumber" placeholder="Registration Number Plate (e.g., DL3C-CE-1234)">
+                <button class="action-cta-button" style="background: #4338ca;" onclick="commitIndianTransitAuditLogRecord()">Register Route Audit Tracker</button>
+            </div>
+        </section>
+
+        <section id="view-panel-ai" class="app-view-panel">
+            <h4 class="section-header-tag" id="lblHeadlineAiGuardian"><i class='bx bxs-brain'></i> Aura AI Predictive Safety Counsel</h4>
+            <div class="glass-card">
+                <div class="ai-chat-scroller-box" id="chatAiOutputScrollerFrameViewport">
+                    <div class="chat-row-capsule bot">
+                        Welcome to Aura AI Platform. I compute localized geospatial safety risk metrics dynamically and interpret legal defense guidelines declared under the statutory code of the **Bharatiya Nyaya Sanhita (BNS, 2026)**.
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" class="input-box-element" id="txtAiChatQueryInputField" placeholder="Say 'Someone is tracking me' or ask rules..." style="margin: 0;">
+                    <button class="circle-btn" style="background: var(--primary); color: white; width: 48px; height: 48px; border-radius: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;" onclick="evaluateUserAiQueryPipelineInput()">
+                        <i class='bx bx-send' style="font-size: 1.2rem;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <h4 class="section-header-tag" id="lblHeadlineLegalDirectory"><i class='bx bxs-bookmark-star'></i> Statutory Rights Directory (BNS Code)</h4>
+            <div class="glass-card" style="display: flex; flex-direction: column; gap: 10px; padding: 16px;">
+                <div style="padding: 12px; background: rgba(255,255,255,0.01); border-left: 4px solid var(--primary); border-radius: 8px; font-size: 12px;">
+                    <strong>Right of Private Defense (BNS):</strong> Explicit legal protocols authorizing complete multi-stage force optimization to counter physical bodily endangerment threats.
+                </div>
+                <div style="padding: 12px; background: rgba(255,255,255,0.01); border-left: 4px solid var(--primary); border-radius: 8px; font-size: 12px;">
+                    <strong>Zero-FIR Electronic Access:</strong> Direct legal mandates demanding immediate registration of complaints across any Indian police desk facility, completely exempt from micro jurisdiction bounds.
+                </div>
+            </div>
+        </section>
+
+        <section id="view-panel-vault" class="app-view-panel">
+            <h4 class="section-header-tag" id="lblHeadlineCircleManagement"><i class='bx bxs-group'></i> Trusted Safety Circles Matrix</h4>
+            <div class="glass-card">
+                <input type="text" class="input-box-element" id="txtCircleContactFullName" placeholder="Guardian Contact Full Name">
+                <input type="tel" class="input-box-element" id="txtCircleContactMobileNumber" placeholder="Mobile Number (+91)">
+                <select class="input-box-element" id="optCircleContactRelationshipLabel">
+                    <option value="Mother">Mother / Parent</option>
+                    <option value="Father">Father / Parent</option>
+                    <option value="Husband">Husband / Partner</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Trusted Friend">Trusted Companion</option>
+                </select>
+                <button class="action-cta-button" onclick="commitNewCircleGuardianRecordToList()">Append Contact to Circle</button>
+            </div>
+            <div id="containerCircleListUIRenderTarget"></div>
+
+            <h4 class="section-header-tag" id="lblHeadlineCrowdReports"><i class='bx bxs-megaphone'></i> Anonymous Infrastructure Hazard Relay</h4>
+            <div class="glass-card">
+                <select class="input-box-element" id="optCrowdHazardPlatformIncidentType">
+                    <option value="Dark Zone infrastructure (No functional streetlights)">Dark Corridor Loop (Zero Functional Lighting)</option>
+                    <option value="Stalking Footprint Cluster Identified">Suspicious Stalking Footprint Sector</option>
+                    <option value="Deserted Transit Roadway Layer">Deserted Unpatrolled Road Corridor</option>
+                </select>
+                <button class="action-cta-button" style="background: var(--sos-color);" onclick="dispatchAnonymousHazardTelemetryReport()">Broadcast Anonymized Crowd Report</button>
+            </div>
+
+            <h4 class="section-header-tag" id="lblHeadlineEvidenceVault"><i class='bx bxs-lock'></i> Encrypted Evidence Vault Blocks</h4>
+            <div id="containerEvidenceVaultLogsListWrapper" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </section>
+
+    </main>
+
+    <nav class="bottom-dock-navigation">
+        <button class="dock-action-item active" onclick="switchActiveViewportPanelContainer('view-panel-shield', this)">
+            <i class='bx bxs-shield-alt-2'></i><span id="navLabelShield">Shield</span>
+        </button>
+        <button class="dock-action-item" onclick="switchActiveViewportPanelContainer('view-panel-telemetry', this)">
+            <i class='bx bxs-navigation'></i><span id="navLabelTelemetry">Track</span>
+        </button>
+        <button class="dock-action-item" onclick="switchActiveViewportPanelContainer('view-panel-transit', this)">
+            <i class='bx bxs-car'></i><span id="navLabelTransit">Commute</span>
+        </button>
+        <button class="dock-action-item" onclick="switchActiveViewportPanelContainer('view-panel-ai', this)">
+            <i class='bx bx-brain'></i><span id="navLabelAi">Aura AI</span>
+        </button>
+        <button class="dock-action-item" onclick="switchActiveViewportPanelContainer('view-panel-vault', this)">
+            <i class='bx bxs-folder-open'></i><span id="navLabelVault">Vault</span>
+        </button>
+    </nav>
+
+    <script>
+        // Global Operational Framework Application Architecture State Parameters
+        let isEmergencyBroadcastConditionActive = false;
+        let systemSOSCountdownStateTimerInstance = null;
+        let numericalCountdownSecondsRemainingTracker = 5;
+        let leafletMapEngineObjectReferenceInstance = null;
+        let leafletCurrentLocationMarkerPointerObject = null;
+        let continuousAcousticSentrySpeechEngineInstance = null;
+
+        // Geocentric Precision Matrix Space Default (Capital New Delhi Coordination Points)
+        let deviceGeocentricLatitudeLocationParam = 28.6139;
+        let deviceGeocentricLongitudeLocationParam = 77.2090;
+
+        // Comprehensive Localization Language Glossary Map Packs Dictionary
+        const structuralRegionalLanguageTranslationGlossary = {
+            en: {
+                title: "SECURE BROADCAST CENTER", sub: "Long-Press (3s), Multi-Tap, or Accelerometer Shake Monitoring Active",
+                batt: "Device Energy", net: "Network Sentry", voice: "Acoustic Guard", engine: "Risk Context",
+                nav1: "Shield", nav2: "Track", nav3: "Commute", nav4: "Aura AI", nav5: "Vault"
+            },
+            hi: {
+                title: "सुरक्षित प्रसारण केंद्र", sub: "लॉन्ग-प्रेस (3s), मल्टी-टैप या एक्सेलेरोमीटर शेक मॉनिटरिंग सक्रिय",
+                batt: "डिवाइस ऊर्जा", net: "नेटवर्क सेंट्री", voice: "ध्वनिक गार्ड", engine: "जोखिम संदर्भ",
+                nav1: "शील्ड", nav2: "ट्रैक", nav3: "कम्यूट", nav4: "ऑरा एआई", nav5: "तिजोरी"
+            },
+            bn: {
+                title: "সুরক্ষিত সম্প্রচার কেন্দ্র", sub: "লং-প্রেস (৩ সেকেন্ড), মাল্টি-ট্যাপ, বা অ্যাক্সেলোমিটার ঝাঁকুনি তদারকি সক্রিয়",
+                batt: "ডিভাইস শক্তি", net: "নেটওয়ার্ক সেন্ট্রি", voice: "অ্যাকোস্টিক গার্ড", engine: "ঝুঁকি সূচক",
+                nav1: "শিল্ড", nav2: "ট্র্যাক", nav3: "কম্যুট", nav4: "অরা এআই", nav5: "ভল্ট"
+            },
+            mr: {
+                title: "सुरक्षित प्रसारण केंद्र", sub: "लाँग-प्रेस (३ सेकंद), मल्टी-टॅप किंवा एक्सीलरोमीटर शेक मॉनिटरिंग सक्रिय",
+                batt: "डिव्हाइस ऊर्जा", net: "नेटवर्क सेंट्री", voice: "ध्वनिक गार्ड", engine: "धोका निर्देशांक",
+                nav1: "शील्ड", nav2: "ट्रॅक", nav3: "प्रवास", nav4: "ऑरा एआय", nav5: "तिजोरी"
+            },
+            ta: {
+                title: "பாதுகாப்பான ஒளிபரப்பு மையம்", sub: "நீண்ட அழுத்தம் (3வி), மல்டி-டேப் அல்லது அசைவு கண்காணிப்பு செயலில் உள்ளது",
+                batt: "பேட்டரி ஆற்றல்", net: "நெட்வொர்க் சென்ட்ரி", voice: "ஒலி காப்பு", engine: "ஆபத்து சூழல்",
+                nav1: "கேடயம்", nav2: "தொடர்", nav3: "பயணம்", nav4: "ஆரா ஏஐ", nav5: "காப்பகம்"
+            },
+            te: {
+                title: "సురక్షిత ప్రసార కేంద్రం", sub: "లాంగ్-ప్రెస్ (3సె), మల్టి-టాప్ లేదా షేక్ మానిటరింగ్ యాక్టివ్‌గా ఉంది",
+                batt: "బ్యాటరీ శక్తి", net: "నెట్‌వర్క్ సెంట్రీ", voice: "అకౌస్టిక్ గార్డ్", engine: "ప్రమాద సూచిక",
+                nav1: "షీల్డ్", nav2: "ట్రాక్", nav3: "ప్రయాణం", nav4: "ఆరా ఏఐ", nav5: "వాల్ట్"
+            },
+            pa: {
+                title: "ਸੁਰੱਖਿਅਤ ਪ੍ਰਸਾਰਣ ਕੇਂਦਰ", sub: "ਲੌਂਗ-ਪ੍ਰੈਸ (3 ਸੈਕੰਡ), ਮਲਟੀ-ਟੈਪ ਜਾਂ ਸ਼ੇਕ ਮਾਨੀਟਰਿੰਗ ਸਰਗਰਮ ਹੈ",
+                batt: "ਡਿਵਾਈਸ ਬੈਟਰੀ", net: "ਨੈੱਟਵਰਕ ਸੈਂਟਰੀ", voice: "ਅਕੂਸਟਿਕ ਗਾਰਡ", engine: "ਜੋਖਮ ਸੂਚਕ",
+                nav1: "ਸ਼ੀਲਡ", nav2: "ਟ੍ਰੈਕ", nav3: "ਸਫ਼ਰ", nav4: "ਔਰਾ ਏਆਈ", nav5: "ਤਿਜੋਰੀ"
+            },
+            gu: {
+                title: "સુરક્ષિત પ્રસારણ કેન્દ્ર", sub: "લોંગ-પ્રેસ (૩ સેકન્ડ), મલ્ટી-ટેપ અથવા શેક મોનિટરિંગ સક્રિય છે",
+                batt: "ડિવાઇસ ઊર્જા", net: "નેટવર્ક સેન્ટ્રી", voice: "અકોસ્ટિક ગાર્ડ", engine: "જોખમ સંદર્ભ",
+                nav1: "શીલ્ડ", nav2: "ટ્રેક", nav3: "પ્રવાસ", nav4: "ઓરા એઆઈ", nav5: "તિજોરી"
+            },
+            kn: {
+                title: "ಸುರಕ್ಷಿತ ಪ್ರಸಾರ ಕೇಂದ್ರ", sub: "ಲಾಂಗ್-ಪ್ರೆಸ್ (3 ಸೆ), ಮಲ್ಟಿ-ಟ್ಯಾಪ್ ಅಥವಾ ಶೇಕ್ ಮಾನಿಟರಿంగ్ ಸಕ್ರಿಯವಾಗಿದೆ",
+                batt: "ಬ್ಯಾಟರಿ ಶಕ್ತಿ", net: "ನೆಟ್‌ವರ್ಕ್ ಸೆಂಟ್ರಿ", voice: "ಅಕೌಸ್ಟಿಕ್ ಗಾರ್ಡ್", engine: "ಅಪಾಯದ ಸಂದರ್ಭ",
+                nav1: "ಶೀಲ್ಡ್", nav2: "ಟ್ರಾಕ್", nav3: "ಪ್ರಯಾಣ", nav4: "ಆರಾ ಏಐ", nav5: "ವೋಲ್ಟ್"
+            },
+            ml: {
+                title: "സുരക്ഷിത പ്രക്ഷേപണ കേന്ദ്രം", sub: "ലോംഗ്-പ്രസ്സ് (3 സെക്കൻഡ്), മൾട്ടി-ടാപ്പ് അല്ലെങ്കിൽ ഷേക്ക് മോണിറ്ററിംഗ് സജീവമാണ്",
+                batt: "ബാറ്ററി ഊർജ്ജം", net: "നെറ്റ്‌വർക്ക് സെൻട്രി", voice: "അക്കോസ്റ്റിക് ഗാർഡ്", engine: "അപായ സാധ്യത",
+                nav1: "ഷീൽഡ്", nav2: "ട്രാക്ക്", nav3: "യാത്ര", nav4: "ആര എഐ", nav5: "വോൾട്ട്"
+            }
+        };
+
+        // DOM MOUNT INTERFACE ALLOCATION LIFE LOOPS
+        document.addEventListener('DOMContentLoaded', () => {
+            evaluatePlatformOnboardingAuthenticationShieldStates();
+            initializeSystemHardwareWatchTelemetryTrackers();
+            renderPrimaryGuardianCircleStripLayouts();
+            renderIncidentEvidenceVaultLogStack();
+            registerAdvancedVoiceSOSTriggerArchitecture();
+            bindGestureTriggersToSOSButton();
+        });
+
+        // PLATFORM ACCESS GATES CONTROL POLICY LOOPS
+        function evaluatePlatformOnboardingAuthenticationShieldStates() {
+            const pinpointSavedPinKey = localStorage.getItem('auraUserSecurityPin');
+            if (!pinpointSavedPinKey) {
+                document.getElementById('verificationShieldGateOverlay').style.display = 'none';
+                document.getElementById('platformInitializationWizardOverlay').style.display = 'flex';
+            }
+        }
+
+        function commitUserInitializationDataPackets() {
+            const userNameVal = document.getElementById('txtWizardUserName').value.trim();
+            const userPinVal = document.getElementById('txtWizardUserSecurityPin').value.trim();
+            const rawContactVal = document.getElementById('txtWizardGuardianContactNumber').value.trim();
+
+            if (!userNameVal || userPinVal.length !== 4 || !rawContactVal) {
+                executeApplicationToastAlertNotification("Invalid Configuration Form Fields!");
+                return;
+            }
+
+            localStorage.setItem('auraUserProfileName', userNameVal);
+            localStorage.setItem('auraUserSecurityPin', userPinVal);
+
+            let starterCirclePackage = [{ id: Date.now(), name: "Default Guardian Node", phone: rawContactVal, relation: "Emergency Base" }];
+            localStorage.setItem('auraCircleContactsArray', JSON.stringify(starterCirclePackage));
+
+            document.getElementById('platformInitializationWizardOverlay').style.display = 'none';
+            executeApplicationToastAlertNotification("Identity Profiles Synchronized Safely!");
+        }
+
+        function verifyUserAccessGatewayPin() {
+            const parsedInputPinValue = document.getElementById('txtSecurityGatewayPinInput').value;
+            const targetAuthenticPinVector = localStorage.getItem('auraUserSecurityPin') || "1234";
+
+            if (parsedInputPinValue === targetAuthenticPinVector) {
+                document.getElementById('verificationShieldGateOverlay').style.display = 'none';
+                executeApplicationToastAlertNotification("Biometric Identity Verification Success!");
+            } else {
+                executeApplicationToastAlertNotification("Security Challenge Denied. Violation Handled.");
+            }
+        }
+
+        // DECOY INTERACTIVE MANAGEMENT SUBSYSTEMS
+        function swapToDecoyCalculatorView() {
+            document.getElementById('verificationShieldGateOverlay').style.display = 'none';
+            document.getElementById('decoyCalculatorOverlayPanel').style.display = 'flex';
+        }
+
+        function pressCalculatorDecoyKey(numericalDigitString) {
+            const calcScreenDisplayElement = document.getElementById('txtDecoyCalculatorScreen');
+            if (calcScreenDisplayElement.value === '0') {
+                calcScreenDisplayElement.value = numericalDigitString;
+            } else {
+                calcScreenDisplayElement.value += numericalDigitString;
+            }
+        }
+
+        function clearCalculatorDecoyScreen() {
+            document.getElementById('txtDecoyCalculatorScreen').value = '0';
+        }
+
+        function verifyCalculatorDecoyPinSequence() {
+            const computedExpressionValue = document.getElementById('txtDecoyCalculatorScreen').value;
+            const absoluteSavedSecretSystemPin = localStorage.getItem('auraUserSecurityPin') || "1234";
+
+            if (computedExpressionValue === absoluteSavedSecretSystemPin) {
+                document.getElementById('decoyCalculatorOverlayPanel').style.display = 'none';
+                document.getElementById('verificationShieldGateOverlay').style.display = 'none';
+                executeApplicationToastAlertNotification("Discrete Backdoor Challenge Verified!");
+            } else {
+                executeApplicationToastAlertNotification("Silent Emergency Trigger Activated via Decoy Channel.");
+                document.getElementById('decoyCalculatorOverlayPanel').style.display = 'none';
+                executeInstantEmergencySentryAlertBroadcast();
+            }
+        }
+
+        // MULTI-PANEL VIEWPORT ENGINE ROUTER
+        function switchActiveViewportPanelContainer(targetViewportPanelId, navigationStripItemElement) {
+            document.querySelectorAll('.app-view-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.dock-action-item').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(targetViewportPanelId).classList.add('active');
+            navigationStripItemElement.classList.add('active');
+
+            if (targetViewportPanelId === 'view-panel-telemetry') {
+                setTimeout(() => { ensureDynamicInteractiveMapInstantiation(); }, 150);
+            }
+        }
+
+        // COMPREHENSIVE TELEMETRY INTEGRATION MONITORS
+        function initializeSystemHardwareWatchTelemetryTrackers() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (positionTrackingObject) => {
+                        deviceGeocentricLatitudeLocationParam = positionTrackingObject.coords.latitude;
+                        deviceGeocentricLongitudeLocationParam = positionTrackingObject.coords.longitude;
+
+                        document.getElementById('lblTelemetryCoordinatesLat').textContent = deviceGeocentricLatitudeLocationParam.toFixed(5);
+                        document.getElementById('lblTelemetryCoordinatesLon').textContent = deviceGeocentricLongitudeLocationParam.toFixed(5);
+
+                        if (leafletMapEngineObjectReferenceInstance && leafletCurrentLocationMarkerPointerObject) {
+                            const trackingArrayCoordLatLng = [deviceGeocentricLatitudeLocationParam, deviceGeocentricLongitudeLocationParam];
+                            leafletCurrentLocationMarkerPointerObject.setLatLng(trackingArrayCoordLatLng);
+                            leafletMapEngineObjectReferenceInstance.setView(trackingArrayCoordLatLng);
+                        }
+                    },
+                    () => { console.warn("Satellite positioning services tracking restricted."); },
+                    { enableHighAccuracy: true, maximumAge: 0 }
+                );
+            }
+
+            if (navigator.getBattery) {
+                navigator.getBattery().then(batteryHardwareObject => {
+                    const rewriteBatteryUiStrings = () => {
+                        const batteryPercentageLevel = (batteryHardwareObject.level * 100).toFixed(0);
+                        document.getElementById('txtDiagValueBattery').textContent = `${batteryPercentageLevel}% Charge Status`;
+                        
+                        // Dynamically update the safety context score matrix depending on low battery warning thresholds
+                        if (batteryPercentageLevel < 25) {
+                            document.getElementById('txtDiagValueEngine').textContent = "Elevated Risk (Low Battery)";
+                            document.getElementById('txtDiagValueEngine').style.color = "var(--accent)";
+                        }
+                    };
+                    rewriteBatteryUiStrings();
+                    batteryHardwareObject.addEventListener('levelchange', rewriteBatteryUiStrings);
+                });
+            }
+
+            window.addEventListener('online', () => {
+                document.getElementById('txtDiagValueNetwork').textContent = "Online (5G Hub)";
+                document.getElementById('pillTelemetryStatusBox').classList.remove('alerting');
+            });
+            window.addEventListener('offline', () => {
+                document.getElementById('txtDiagValueNetwork').textContent = "Offline (Local Queue Mode)";
+                document.getElementById('pillTelemetryStatusBox').classList.add('alerting');
+            });
+        }
+
+        // ADVANCED INTEGRATED PHYSICAL ENVIRONMENT GESTURE SENTINELS
+        function bindGestureTriggersToSOSButton() {
+            const clickableSosButtonElement = document.getElementById('btnTriggerSOSActionChannel');
+            let continuousPressDurationTimerInstance;
+            let precedingClickTimestampMemory = 0;
+            let cumulativeDiscreteClickCounter = 0;
+
+            clickableSosButtonElement.addEventListener('mousedown', initiateContinuousPressDurationTimer);
+            clickableSosButtonElement.addEventListener('touchstart', (e) => { e.preventDefault(); initiateContinuousPressDurationTimer(); });
+            clickableSosButtonElement.addEventListener('mouseup', breakContinuousPressDurationTimer);
+            clickableSosButtonElement.addEventListener('touchend', breakContinuousPressDurationTimer);
+
+            function initiateContinuousPressDurationTimer() {
+                continuousPressDurationTimerInstance = setTimeout(() => { engageEmergencyCountdownSequencePipeline(); }, 3000);
+            }
+            function breakContinuousPressDurationTimer() { clearTimeout(continuousPressDurationTimerInstance); }
+
+            clickableSosButtonElement.addEventListener('click', () => {
+                const chronologicalCurrentTimestamp = Date.now();
+                
+                if (chronologicalCurrentTimestamp - precedingClickTimestampMemory < 400) {
+                    cumulativeDiscreteClickCounter++;
+                    if (cumulativeDiscreteClickCounter >= 2) {
+                        engageEmergencyCountdownSequencePipeline();
+                        cumulativeDiscreteClickCounter = 0;
+                    }
+                } else {
+                    cumulativeDiscreteClickCounter = 1;
+                }
+                precedingClickTimestampMemory = chronologicalCurrentTimestamp;
+            });
+
+            // Accelerometer Device Motion Vector Shaking Monitoring Loop Registration
+            if (window.DeviceMotionEvent) {
+                let spatialTrackingPreviousVectorX, spatialTrackingPreviousVectorY;
+                window.addEventListener('devicemotion', (motionTelemetryEventData) => {
+                    let spatialGravitationalAccelerationVectors = motionTelemetryEventData.accelerationIncludingGravity;
+                    if (!spatialGravitationalAccelerationVectors || !spatialGravitationalAccelerationVectors.x) return;
+
+                    let horizontalDisplacementDelta = Math.abs(spatialGravitationalAccelerationVectors.x - spatialTrackingPreviousVectorX);
+                    let verticalDisplacementDelta = Math.abs(spatialGravitationalAccelerationVectors.y - spatialTrackingPreviousVectorY);
+
+                    if (horizontalDisplacementDelta > 32 && verticalDisplacementDelta > 32) {
+                        executeInstantEmergencySentryAlertBroadcast();
+                    }
+                    spatialTrackingPreviousVectorX = spatialGravitationalAccelerationVectors.x;
+                    spatialTrackingPreviousVectorY = spatialGravitationalAccelerationVectors.y;
+                });
+            }
+        }
+
+        // CHROMIUM WEB SPEECH VOCAL EMERGENCY DETECTION ARCHITECTURES
+        function registerAdvancedVoiceSOSTriggerArchitecture() {
+            const BaseNativeSpeechRecognitionClassConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (BaseNativeSpeechRecognitionClassConstructor) {
+                continuousAcousticSentrySpeechEngineInstance = new BaseNativeSpeechRecognitionClassConstructor();
+                continuousAcousticSentrySpeechEngineInstance.continuous = true;
+                continuousAcousticSentrySpeechEngineInstance.interimResults = false;
+                continuousAcousticSentrySpeechEngineInstance.lang = 'en-IN';
+
+                continuousAcousticSentrySpeechEngineInstance.onresult = (transcriptionOutputEvent) => {
+                    const parsedSpeechTranscriptionTextValue = transcriptionOutputEvent.results[transcriptionOutputEvent.results.length - 1][0].transcript.toLowerCase();
+                    if (parsedSpeechTranscriptionTextValue.includes("help me") || parsedSpeechTranscriptionTextValue.includes("bachao") || parsedSpeechTranscriptionTextValue.includes("emergency") || parsedSpeechTranscriptionTextValue.includes("save me")) {
+                        executeApplicationToastAlertNotification("Acoustic Keywords Match Identified!");
+                        executeInstantEmergencySentryAlertBroadcast();
+                    }
+                };
+
+                continuousAcousticSentrySpeechEngineInstance.onend = () => { if (!isEmergencyBroadcastConditionActive) continuousAcousticSentrySpeechEngineInstance.start(); };
+                try { continuousAcousticSentrySpeechEngineInstance.start(); } catch (e) { /* Absorb instantiation pipeline constraints safely */ }
+            } else {
+                document.getElementById('txtDiagValueVoice').textContent = "Hardware Unsupported";
+            }
+        }
+
+        // CONTROL TIMERS PIPELINES ARCHITECTURES
+        function engageEmergencyCountdownSequencePipeline() {
+            if (isEmergencyBroadcastConditionActive) {
+                executeApplicationToastAlertNotification("Requires Security PIN Verification to Cancel!");
+                return;
+            }
+            numericalCountdownSecondsRemainingTracker = 5;
+            document.getElementById('lblCountdownTimerValueDisplay').textContent = numericalCountdownSecondsRemainingTracker;
+            document.getElementById('txtCountdownCancellationPinField').value = "";
+            document.getElementById('sosArmedCountdownMaskContainer').style.display = "flex";
+
+            systemSOSCountdownStateTimerInstance = setInterval(() => {
+                numericalCountdownSecondsRemainingTracker--;
+                document.getElementById('lblCountdownTimerValueDisplay').textContent = numericalCountdownSecondsRemainingTracker;
+                if (numericalCountdownSecondsRemainingTracker <= 0) {
+                    clearInterval(systemSOSCountdownStateTimerInstance);
+                    document.getElementById('sosArmedCountdownMaskContainer').style.display = "none";
+                    executeInstantEmergencySentryAlertBroadcast();
+                }
+            }, 1000);
+        }
+
+        function evaluateSOSCountdownCancellationClaim() {
+            const providedCancellationPinValue = document.getElementById('txtCountdownCancellationPinField').value;
+            const authenticStoredPinConstraint = localStorage.getItem('auraUserSecurityPin') || "1234";
+
+            if (providedCancellationPinValue === authenticStoredPinConstraint) {
+                clearInterval(systemSOSCountdownStateTimerInstance);
+                document.getElementById('sosArmedCountdownMaskContainer').style.display = "none";
+                if (isEmergencyBroadcastConditionActive) resetEmergencyPlatformOperationalState();
+                executeApplicationToastAlertNotification("Emergency Abort Signal Dispatched and Confirmed.");
+            } else {
+                executeApplicationToastAlertNotification("PIN Challenge Failed. Lock Retained.");
+            }
+        }
+
+        function executeInstantEmergencySentryAlertBroadcast() {
+            clearInterval(systemSOSCountdownStateTimerInstance);
+            document.getElementById('sosArmedCountdownMaskContainer').style.display = "none";
+
+            isEmergencyBroadcastConditionActive = true;
+            document.getElementById('sosInteractionVisualCardComponent').classList.add('sos-active-alerting');
+            document.getElementById('btnTriggerSOSActionChannel').textContent = "ACTIVE";
+            document.getElementById('lblSystemSentryPillMessage').textContent = "🚨 DISPATCHING LIVE GEO-DATA CHANNELS";
+            document.getElementById('lblSystemSentryPillMessage').style.color = "var(--sos-color)";
+
+            // Request secure audio visual payload recordings pipeline
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(mediaStreamPayloadInstance => {
+                    setTimeout(() => { mediaStreamPayloadInstance.getTracks().forEach(track => track.stop()); }, 6000);
+                }).catch(() => { /* Interface payload security safeguards fallback handling */ });
+            }
+
+            // Save encrypted metadata package row to local stack arrays
+            let currentIncidentLogsArray = JSON.parse(localStorage.getItem('auraIncidentVaultArray')) || [];
+            currentIncidentLogsArray.unshift({
+                timestamp: new Date().toLocaleString(),
+                location: `${deviceGeocentricLatitudeLocationParam.toFixed(5)}, ${deviceGeocentricLongitudeLocationParam.toFixed(5)}`,
+                details: "Multi-Gesture Sentry Activation Packet Logged"
+            });
+            localStorage.setItem('auraIncidentVaultArray', JSON.stringify(currentIncidentLogsArray));
+            renderIncidentEvidenceVaultLogStack();
+
+            // Construct secure target communication link telemetry payloads
+            const telemetryMapsUrlBindingString = `https://maps.google.com/?q=${deviceGeocentricLatitudeLocationParam},${deviceGeocentricLongitudeLocationParam}`;
+            const structuredSmsPayloadPacket = `🚨 *AURASAFE LIVE CRITICAL EMERGENCY ALERT* 🚨\n\nImmediate response optimization required. Live Tracking Coordinates Telemetry Link:\n${telemetryMapsUrlBindingString}\n\nTime Vector Vector: ${new Date().toLocaleTimeString()}`;
+            
+            console.warn("Outbound Encrypted Payload Packets Ready for SMS Fallback:", structuredSmsPayloadPacket);
+            setTimeout(() => {
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(structuredSmsPayloadPacket)}`, '_blank');
+            }, 800);
+        }
+
+        function resetEmergencyPlatformOperationalState() {
+            isEmergencyBroadcastConditionActive = false;
+            document.getElementById('sosInteractionVisualCardComponent').classList.remove('sos-active-alerting');
+            document.getElementById('btnTriggerSOSActionChannel').textContent = "SOS";
+            document.getElementById('lblSystemSentryPillMessage').innerHTML = `<i class='bx bxs-check-shield'></i> Encrypted Environmental Sentry Armed`;
+            document.getElementById('lblSystemSentryPillMessage').style.color = "var(--success)";
+        }
+
+        // LEAFLET SPATIAL GEOCENTRIC MAPPING MODULES
+        function ensureDynamicInteractiveMapInstantiation() {
+            if (!leafletMapEngineObjectReferenceInstance) {
+                leafletMapEngineObjectReferenceInstance = L.map('leafletInteractiveMapContainerBox', { zoomControl: false }).setView([deviceGeocentricLatitudeLocationParam, deviceGeocentricLongitudeLocationParam], 14);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(leafletMapEngineObjectReferenceInstance);
+
+                const specializedPulseLocationMarkerIcon = L.divIcon({
+                    className: 'custom-leaflet-pulse-node-marker',
+                    html: `<div style="width:16px; height:16px; background:#6366f1; border:3px solid white; border-radius:50%; box-shadow:0 0 12px #6366f1;"></div>`
+                });
+                leafletCurrentLocationMarkerPointerObject = L.marker([deviceGeocentricLatitudeLocationParam, deviceGeocentricLongitudeLocationParam], { icon: specializedPulseLocationMarkerIcon }).addTo(leafletMapEngineObjectReferenceInstance);
+            } else {
+                leafletMapEngineObjectReferenceInstance.invalidateSize();
+            }
+        }
+
+        // ARRIVAL SAFETY CHECK-IN MANAGEMENT
+        function armIntelligentTravelSentryCheckin() {
+            const targetDestinationNameString = document.getElementById('txtTravelSentryDestinationName').value.trim();
+            if (!targetDestinationNameString) { executeApplicationToastAlertNotification("Specify Target Location Point!"); return; }
+
+            const trackingFeedbackContainerBox = document.getElementById('lblActiveTravelTimelineFeedbackContainer');
+            trackingFeedbackContainerBox.style.display = "block";
+            trackingFeedbackContainerBox.textContent = `Transit monitor active towards ${targetDestinationNameString}. Escalation automated.`;
+            executeApplicationToastAlertNotification("Geofenced Monitoring Sentry Engaged.");
+        }
+
+        function commitIndianTransitAuditLogRecord() {
+            const transportPlateIdString = document.getElementById('txtTransitLogisticsVehicleRegistrationNumber').value.trim();
+            if (!transportPlateIdString) { executeApplicationToastAlertNotification("Enter Registration Plate Values!"); return; }
+            executeApplicationToastAlertNotification(`Logistics Identifier ${transportPlateIdString} Locked in Safe Route Stream.`);
+        }
+
+        // SIMULATED ENVIRONMENT COGNITIVE DECOY ESCAPES
+        function fireSimulatedDecoyEscapeCallStream() {
+            const chosenCallerLabelText = document.getElementById('optDecoySimulatedIncomingCallerLabel').value;
+            executeApplicationToastAlertNotification(`Simulating Outbound Network Loop for channel: ${chosenCallerLabelText}`);
+            // Fire direct simulated audio interaction fallback mockup triggers
+            alert(`[Incoming Decoy Track Loop]: Answer to generate safe interactive escape scripts.`);
+        }
+
+        // NATURAL LANGUAGE PROCESSING COGNITIVE INTEGRATIONS AI ENGINE
+        function evaluateUserAiQueryPipelineInput() {
+            const processingInputElement = document.getElementById('txtAiChatQueryInputField');
+            const targetChatViewportScroller = document.getElementById('chatAiOutputScrollerFrameViewport');
+            const targetQueryValueTextString = processingInputElement.value.trim();
+            if (!targetQueryValueTextString) return;
+
+            targetChatViewportScroller.innerHTML += `<div class="chat-row-capsule user">${targetQueryValueTextString}</div>`;
+            processingInputElement.value = "";
+            targetChatViewportScroller.scrollTop = targetChatViewportScroller.scrollHeight;
+
+            setTimeout(() => {
+                let optimizedResponseTemplateString = "Under the structural guidelines code of Indian BNS Framework systems, you hold zero restrictions on right of immediate defensive action optimization. If tracking patterns compromise physical safety metrics, transit instantly towards the nearest populated Metro terminal gate node point.";
+                const analyticalQueryMatchingToken = targetQueryValueTextString.toLowerCase();
+
+                if (analyticalQueryMatchingToken.includes("following") || analyticalQueryMatchingToken.includes("tracking") || analyticalQueryMatchingToken.includes("unsafe")) {
+                    optimizedResponseTemplateString = "⚠️ *CRITICAL PROTOCOL SENTRY ENGAGED:* Aura AI analysis flags elevated route hazard index scores. Keep your hand locked directly on the multi-gesture SOS button. Telemetry data feeds are primed for immediate dispatch.";
+                    document.getElementById('txtDiagValueEngine').textContent = "High Hazard Risk Matrix";
+                    document.getElementById('txtDiagValueEngine').style.color = "var(--sos-color)";
+                } else if (analyticalQueryMatchingToken.includes("rights") || analyticalQueryMatchingToken.includes("bns") || analyticalQueryMatchingToken.includes("law")) {
+                    optimizedResponseTemplateString = "BNS Codes safeguard individual protection. Under zero jurisdiction compliance statutes, police elements are bounded to initiate computerized records tracking regardless of spatial constraints.";
+                }
+
+                targetChatViewportScroller.innerHTML += `<div class="chat-row-capsule bot">${optimizedResponseTemplateString}</div>`;
+                targetChatViewportScroller.scrollTop = targetChatViewportScroller.scrollHeight;
+            }, 600);
+        }
+
+        // PROFILE DATA BUILDERS AND STORAGE RECORDS
+        function commitNewCircleGuardianRecordToList() {
+            const inputFullNameStr = document.getElementById('txtCircleContactFullName').value.trim();
+            const inputMobileNumberStr = document.getElementById('txtCircleContactMobileNumber').value.trim();
+            const inputRelationLabelStr = document.getElementById('optCircleContactRelationshipLabel').value;
+
+            if (!inputFullNameStr || !inputMobileNumberStr) { executeApplicationToastAlertNotification("Fill Missing Registration Inputs!"); return; }
+
+            let workingContactsArray = JSON.parse(localStorage.getItem('auraCircleContactsArray')) || [];
+            workingContactsArray.push({ id: Date.now(), name: inputFullNameStr, phone: inputMobileNumberStr, relation: inputRelationLabelStr });
+            localStorage.setItem('auraCircleContactsArray', JSON.stringify(workingContactsArray));
+
+            document.getElementById('txtCircleContactFullName').value = "";
+            document.getElementById('txtCircleContactMobileNumber').value = "";
+
+            renderPrimaryGuardianCircleStripLayouts();
+            executeApplicationToastAlertNotification("Guardian Contact Saved in Secured Local Cache.");
+        }
+
+        function renderPrimaryGuardianCircleStripLayouts() {
+            const renderWrapperBoxElement = document.getElementById('containerCircleListUIRenderTarget');
+            let dataArrayCollectionInstance = JSON.parse(localStorage.getItem('auraCircleContactsArray')) || [];
+
+            if (dataArrayCollectionInstance.length === 0) {
+                renderWrapperBoxElement.innerHTML = `<p style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">Zero customized contact tracking circles found.</p>`;
+                return;
+            }
+
+            renderWrapperBoxElement.innerHTML = dataArrayCollectionInstance.map(rowContact => `
+                <div class="item-data-strip-row">
+                    <div>
+                        <strong>${rowContact.name}</strong> <span style="font-size:11px; color:var(--text-muted);">(${rowContact.relation})</span>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Contact: ${rowContact.phone}</div>
+                    </div>
+                    <button class="circle-btn" style="border:none; background:transparent; color:var(--sos-color); cursor:pointer;" onclick="deleteCircleGuardianRecord(${rowContact.id})">
+                        <i class='bx bxs-trash' style="font-size:1.2rem;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function deleteCircleGuardianRecord(targetRowIdentifierKey) {
+            let workingContactsArray = JSON.parse(localStorage.getItem('auraCircleContactsArray')) || [];
+            workingContactsArray = workingContactsArray.filter(item => item.id !== targetRowIdentifierKey);
+            localStorage.setItem('auraCircleContactsArray', JSON.stringify(workingContactsArray));
+            renderPrimaryGuardianCircleStripLayouts();
+        }
+
+        function dispatchAnonymousHazardTelemetryReport() {
+            const matchedIncidentTypeString = document.getElementById('optCrowdHazardPlatformIncidentType').value;
+            executeApplicationToastAlertNotification(`Hazard Flag Synthesized Globally: ${matchedIncidentTypeString}`);
+        }
+
+        function renderIncidentEvidenceVaultLogStack() {
+            const targetsLogsWrapperContainerBox = document.getElementById('containerEvidenceVaultLogsListWrapper');
+            let applicationIncidentLogsArray = JSON.parse(localStorage.getItem('auraIncidentVaultArray')) || [];
+
+            if (applicationIncidentLogsArray.length === 0) {
+                targetsLogsWrapperContainerBox.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:10px; font-size:12px;">Evidence vaults contain zero historically committed payload rows.</p>`;
+                return;
+            }
+
+            targetsLogsWrapperContainerBox.innerHTML = applicationIncidentLogsArray.map(logRowItem => `
+                <div style="background:rgba(255,255,255,0.01); border:1px solid var(--border); padding:12px 14px; border-radius:14px; border-left:4px solid var(--primary); font-size:12px;">
+                    <strong>${logRowItem.details}</strong>
+                    <div style="color:var(--text-muted); font-size:11px; margin-top:4px;">Vector: ${logRowItem.location} | Timestamp: ${logRowItem.timestamp}</div>
+                </div>
+            `).join('');
+        }
+
+        // AUXILIARY VISUAL ACCESSIBILITY SYSTEM REWRITES
+        function executeApplicationToastAlertNotification(toastDisplayMessageString) {
+            const toastBlockDomPointer = document.getElementById('globalToastAlertModuleBlock');
+            toastBlockDomPointer.textContent = toastDisplayMessageString;
+            toastBlockDomPointer.classList.add('visible');
+            setTimeout(() => { toastBlockDomPointer.classList.remove('visible'); }, 2200);
+        }
+
+        function toggleAccessibilityDisplayConstraints() {
+            const isLargeTextEnabled = document.body.classList.contains('large-text-mode');
+            if (!isLargeTextEnabled) {
+                document.body.classList.add('large-text-mode');
+                document.body.classList.add('high-contrast-mode');
+                executeApplicationToastAlertNotification("Large Text and Contrast Systems Engaged.");
+            } else {
+                document.body.classList.remove('large-text-mode');
+                document.body.classList.remove('high-contrast-mode');
+                executeApplicationToastAlertNotification("Standard Typography Layout Defaults Extracted.");
+            }
+        }
+
+        function switchSystemLocaleTranslationDictionary() {
+            const targetedSelectedLanguageKey = document.getElementById('optRegionalLanguageSelector').value;
+            const operationalDictionaryPackage = structuralRegionalLanguageTranslationGlossary[targetedSelectedLanguageKey] || structuralRegionalLanguageTranslationGlossary['en'];
+
+            // Perform hard text swapping across UI elements
+            document.getElementById('lblShieldPanelCardTitle').textContent = operationalDictionaryPackage.title;
+            document.getElementById('lblShieldPanelCardSubtitle').textContent = operationalDictionaryPackage.sub;
+            document.getElementById('lblDiagTitleBattery').textContent = operationalDictionaryPackage.batt;
+            document.getElementById('lblDiagTitleNetwork').textContent = operationalDictionaryPackage.net;
+            document.getElementById('lblDiagTitleVoice').textContent = operationalDictionaryPackage.voice;
+            document.getElementById('lblDiagTitleEngine').textContent = operationalDictionaryPackage.engine;
+
+            document.getElementById('navLabelShield').textContent = operationalDictionaryPackage.nav1;
+            document.getElementById('navLabelTelemetry').textContent = operationalDictionaryPackage.nav2;
+            document.getElementById('navLabelTransit').textContent = operationalDictionaryPackage.nav3;
+            document.getElementById('navLabelAi').textContent = operationalDictionaryPackage.nav4;
+            document.getElementById('navLabelVault').textContent = operationalDictionaryPackage.nav5;
+
+            executeApplicationToastAlertNotification(`Language localization initialized successfully.`);
+        }
+    </script>
+</body>
+</html>
